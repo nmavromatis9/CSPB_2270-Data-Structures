@@ -35,7 +35,7 @@ public:
 
 private:
     int arr[10];
-    int last_open; //index of last open position available. 
+    int last_open; //index of last open position.
     // you can add add more private member variables and member functions here if you need
 };
 
