@@ -129,20 +129,96 @@ void LinkedList::Insert(int offset, shared_ptr<node> new_node)
 
 void LinkedList::Remove(int offset)
 {
-  // Your code here
+  //Smart pointers: No need to delete after use
+
+  //ptr acts as cursor.
+  shared_ptr<node> ptr(new node);
+  //tmp will store "deleted_node->next"
+  shared_ptr<node> tmp(new node);
+  ptr=top_ptr_;
+  
+  if(!ptr)//if top_ptr_==NULL, return
+  {
+    return;
+  }
+  if(offset<0)//invalid offset passed.
+  {
+    return;
+  }
+  //special case, when no scrolling needs to be done.
+  if (offset==0)
+  {
+    //store new top_ptr_ (head) in tmp
+    tmp=ptr->next;
+    //set top_ptr_(head) to this new_node
+    top_ptr_=tmp;
+
+  }
+  //scroll, stop one node before node to be deleted
+  else
+  {
+    for (int i=0; i<offset-1; i++)
+    {
+      if (ptr->next)//!=NULL
+      {
+        ptr=ptr->next;
+      }
+    }
+    //store node which comes after deleted node.
+    tmp=ptr->next->next; //will be "NULL" if final node being deleted.
+    //make ptr->next connect "over" deleted node so it is no longer present.
+    ptr->next=tmp;
+
+  }
 }
 
 int LinkedList::Size()
 {
-  int ret;
-  // Your code here
+  int ret=0;
+  //ptr acts as cursor.
+  shared_ptr<node> ptr(new node);
+  ptr=top_ptr_;
+
+  if(!ptr)
+  {//empty list
+    return ret;
+  }
+  else
+  {
+    while(ptr)//!=NULL
+    {
+      //This way, final NULL node not counted.
+      ret++;
+      ptr=ptr->next;
+    }
+  }
   return ret;
 }
 
 bool LinkedList::Contains(int data)
 {
-  bool ret;
-  // Your code here
+  //ptr acts as cursor.
+  shared_ptr<node> ptr(new node);
+  ptr=top_ptr_;
+  bool ret=false;
+
+  if(!ptr)//if head==NULL
+  {
+    return ret;//false
+  }
+  
+  while(ptr)//!=NULL
+  {
+    if (ptr->data==data)//value found
+    {
+      ret=true;
+      break;//break out of while loop
+    }
+    else
+    {
+      ptr=ptr->next;
+    }
+  }
   return ret;
 }
 
