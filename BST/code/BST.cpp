@@ -113,7 +113,7 @@ shared_ptr<bst_node> BST:: GetParent(shared_ptr<bst_node> node, int data)
     return GetParent(ptr->right, data);
   }
   
-
+  return NULL;
 }
 
 //Find and return InOrder successor of Node
