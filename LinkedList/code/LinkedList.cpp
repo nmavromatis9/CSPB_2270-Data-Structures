@@ -5,13 +5,8 @@ LinkedList::LinkedList()
 {
   
   // Initially set top pointer to a null shared_ptr of node
-  shared_ptr<node> ptr(new node);
-  ptr=NULL;
-  //ptr->next=NULL; //This makes a segmentation fault. 
-  top_ptr_=ptr;
 
-  //also valid:
-  //top_ptr_ = shared_ptr<node>(NULL);
+  top_ptr_ = shared_ptr<node>(NULL);
 }
 
 //deconstructor,
@@ -43,7 +38,7 @@ string LinkedList::Report()
     return ret;
 }
 
-
+//helper function, calls append().
 void LinkedList::AppendData(int data)
 {
   //This call InitNode, which allocates new memory for shared_ptr<node>
@@ -77,6 +72,7 @@ void LinkedList::Append(shared_ptr<node> new_node)
     
 }
 
+//helper function, calls Insert().
 void LinkedList::InsertData(int offset, int data)
 { 
   //initialize pointer to new node containing data
