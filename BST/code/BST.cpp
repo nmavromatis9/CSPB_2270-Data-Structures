@@ -1,14 +1,12 @@
 #include "BST.h"
-//delete
+//I added *include<iostream>
 #include<iostream>
 using namespace std;
-//delete
+
 // constructor, initialize class variables and pointers here if need.
 BST::BST()
 {
-  //no need to allocate new memory for root_ptr_. Done when class called?  
- // root_ptr_ = shared_ptr<bst_node>(new bst_node);
- //shared_ptr<bst_node>root_ptr_(NULL);
+  //allocates new memory for root_ptr_, sets to null.
   root_ptr_ = shared_ptr<bst_node>(NULL);
 }
 
@@ -16,6 +14,7 @@ BST::BST()
 BST::~BST(){
 }
 
+//initializes pointer to bst_node with data.
 shared_ptr<bst_node> BST::InitNode(int data)
 {
   shared_ptr<bst_node> ptr(new bst_node);
@@ -27,6 +26,7 @@ shared_ptr<bst_node> BST::InitNode(int data)
 }
 
 //iterative solution is easiest to implement here.
+//inserts new_node in correct spot in tree.
 void BST::Insert(shared_ptr<bst_node> new_node)
 {
   shared_ptr<bst_node> ptr(new bst_node);
@@ -80,7 +80,7 @@ void BST::InsertData(int data)
   Insert(new_node);
 }
 
-//This finds and returns the parent of node (which contains data)
+//This finds and returns the parent of node (child==node which contains data)
 shared_ptr<bst_node> BST:: GetParent(shared_ptr<bst_node> node, int data)
 {
   shared_ptr<bst_node> ptr(new bst_node);
@@ -104,7 +104,7 @@ shared_ptr<bst_node> BST:: GetParent(shared_ptr<bst_node> node, int data)
   //if data<ptr->data, recur left, moving down left subtree.
   else if(data<ptr->data)
   {
-    //must return GetParent(); just GetParent() doesn't work.
+    //must include return GetParent(); just GetParent() doesn't work.
     return GetParent(ptr->left, data);
   }
   //if data>ptr->data, recur right, moving down right subtree.
@@ -157,7 +157,7 @@ void BST::RemoveHelp(shared_ptr<bst_node> &node, int data)
 {
 
   shared_ptr<bst_node> p (new bst_node);
-  //find parent, so that ->left or ->right child can be altered.
+  //find parent of node->data, so that ->left or ->right child can be altered.
   p=GetParent(root_ptr_, data);
   
   //cout<<node->data<<" FOUND"<<endl;
@@ -202,7 +202,7 @@ void BST::RemoveHelp(shared_ptr<bst_node> &node, int data)
     p=GetParent(root_ptr_, min->data);
     //cout<<"PARENT 2= "<<p->data<<endl;
 
-    //copy min to node
+    //copy min to node being deleted.
     node->data=min->data;
     //cout<<"NEW NODE DATA"<<node->data<<endl;
     //delete min:
@@ -220,6 +220,7 @@ void BST::RemoveHelp(shared_ptr<bst_node> &node, int data)
       
 }
 
+//search for node containing data, return bool.
 bool BST::Contains(shared_ptr<bst_node> subt, int data)
 {
   shared_ptr<bst_node> ptr(new bst_node);
@@ -247,6 +248,7 @@ bool BST::Contains(shared_ptr<bst_node> subt, int data)
       ptr=ptr->right;
     }
   }
+  //if not found:
   return false;
 }
 //Just like Contains, but returns pointer or NULL
@@ -280,13 +282,13 @@ shared_ptr<bst_node> BST::GetNode(shared_ptr<bst_node> subt, int data)
   return NULL;
 }
 
-//This function is recursive.
+//This function is recursive, and returns size of tree.
 int BST::Size(shared_ptr<bst_node> subt)
 {
   shared_ptr<bst_node> ptr(new bst_node);
   ptr=subt;
 
-  if (!ptr)//empty, and stopping case.
+  if (!ptr)//empty tree, or stopping case.
   {
     return 0;
   }
@@ -302,6 +304,7 @@ int BST::Size(shared_ptr<bst_node> subt)
   return 0;
 }
 
+//inorder conversion of tree to vector.
 void BST::ToVector(shared_ptr<bst_node> subt, vector<int>& vec)
 {
   // inorder: Left, Root, Right
