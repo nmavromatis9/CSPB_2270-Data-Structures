@@ -27,7 +27,7 @@ void BTree::insert(shared_ptr<btree> root, int key)
   if(isFull(root))
   {
     cout<<"Root needs to be split."<<endl;
-    root=splitRoot(root);
+    splitRoot(root);
     return;
   }
 
@@ -38,8 +38,7 @@ void BTree::insert(shared_ptr<btree> root, int key)
     fillKeys(root, key);
     if(isFull(root))
     {
-      root=splitRoot(root);
-      root=root;
+      splitRoot(root);
       return;
     }
     return;
@@ -79,7 +78,7 @@ void BTree::insert(shared_ptr<btree> root, int key)
   // -- the btree pointed to by 'root' is valid.
 void BTree::remove(shared_ptr<btree> root, int key)
 {
-  
+  /*
   //I will implement removal from a leaf here.
   shared_ptr<btree> spot=find(root, key);
   int i=0;
@@ -100,6 +99,7 @@ void BTree::remove(shared_ptr<btree> root, int key)
   }
   spot->num_keys--;
   return;
+  */
 
 }
 
@@ -264,13 +264,22 @@ bool BTree::isFull(shared_ptr<btree> node)
   return (node->num_keys==5);
 }
 
-shared_ptr<btree> BTree::splitRoot(shared_ptr<btree> root)
+//Note: I initially tried to implement this using various strategies that did not 
+//change the object stored at the memory pointed to by root. Thus test failed.
+//Using shared_ptr<btree> parent(root)=init_node 
+// or root=init_node() creates new memory. This is a huge mistake!
+//because root=parent then sets root pointer to point to this new memory, and 
+//original object at memory that is passed to test is unchanged.
+//Using shared_ptr<btree> parent(root) points parent to root memory. Unnecessary. 
+//You MUST alter root pointer directly, and reset values so root pointing to
+//memory passes correct object to test.
+//Also: function prototype that returns a shared_ptr<btree> is unnecessary.
+void BTree::splitRoot(shared_ptr<btree> root)
 {
   //create pointers to node to store left and right split around median.
   shared_ptr<btree> L=init_node();
   shared_ptr<btree> R=init_node();
-  shared_ptr<btree> parent=init_node();
-  //assign leaf status of these two nodes based on if split node is a leaf
+  //assign leaf status of these two children nodes to be true.
   L->is_leaf=true;
   R->is_leaf=true;
 
@@ -278,7 +287,7 @@ shared_ptr<btree> BTree::splitRoot(shared_ptr<btree> root)
   if(!isFull(root))
   {
     cout<<"Node is not full. Cannot be split"<<endl;
-    return root;
+    return;
   }
 
 
@@ -294,27 +303,24 @@ shared_ptr<btree> BTree::splitRoot(shared_ptr<btree> root)
     R->keys[1]=root->keys[4];
     R->num_keys++;
 
-    //next, create a new root node pointer.
-    //assign the newly made L and R children to this parent.
+    //store median, to be new root value.
     int median=root->keys[2];
-    root=init_node();
+    
+    //assign this to root,
     root->keys[0]=median;
+    //then clear all "old" values in root that will later be in L and R.
+    for(int i=1; i<5; i++)
+    {
+      root->keys[i]=0;
+    }
+    //fix root properties, and assign children.
     root->is_leaf=false;
     root->num_keys=1;
     root->children[0]=L;
     root->children[1]=R;
-    //parent->keys[0]=root->keys[2];
-    //parent->is_leaf=false;
-    //parent->num_keys=1;
-    //parent->children[0]=L;
-    //parent->children[1]=R;
+    
 
-    //now set root to be this pointer.
-    //You have to also make node point to this pointer, so that both pointers 
-    //affecting root are updated.
-
-    //root=parent;
-    return root;
+    return;
 }
 
 //after running find externally and making sure node is correct node to be split,

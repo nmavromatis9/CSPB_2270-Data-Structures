@@ -101,7 +101,7 @@ public:
   
   void splitChild(shared_ptr<btree> root, shared_ptr<btree> node);
 
-  shared_ptr<btree> splitRoot(shared_ptr<btree> root);
+  void splitRoot(shared_ptr<btree> root);
 
   void fillKeys(shared_ptr<btree> node, int key);
 
