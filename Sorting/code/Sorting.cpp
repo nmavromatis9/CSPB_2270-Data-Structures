@@ -76,7 +76,7 @@ void Sorting::quicksort(vector<int>& data, int low_idx, int high_idx)
  
   //This sorts vector so elements less than pivot are to left of pivot,
   //and elements greater than pivot are to right of pivot.
-  //returns final index of pivot.
+  //returns final index of pivot after placing pivot in right spot.
 int Sorting::quicksort_partition(vector<int>& data, int low_idx, int high_idx)
 {
   //store pivot value of high_idx as p
@@ -86,7 +86,7 @@ int Sorting::quicksort_partition(vector<int>& data, int low_idx, int high_idx)
   //j accesses current element of comparison.
   for (int j=low_idx; j<=high_idx-1; j++ )
   {
-    //if current element smaller than p:
+    //if current element smaller than pivot:
     if (data.at(j)<p)
     {
       //swap these values so that element (j) which smaller than p placed at i.
@@ -108,7 +108,7 @@ void Sorting::bubblesort(vector<int>& data)
   //run loop size-1 times.
   for (int i=0; i<s-1; i++)
   {
-    //final i elements are already in place. 
+    //after each outer iteration, final i elements are already in place. 
     //-1 is in loop because .at(j) compared to .at(j+1) 
     //j is var used to compare adjacent elements.
     for (int j=0; j<s-1-i; j++)
@@ -121,6 +121,9 @@ void Sorting::bubblesort(vector<int>& data)
   }
 }
 
+//This recursively splits the list into Left and Right halves
+//until each sublist has only one or zero values. Then merge() is called 
+//to merge these parts in order. 
 void Sorting::mergesort(vector<int>& data)
 {
   //If data has 0 or 1 members, there is no need to sort anything.
@@ -217,9 +220,10 @@ void Sorting::merge(vector<int>& left, vector<int>& right, vector<int>& result)
 }
 
 //Selection Sort: Each iteration, finds the smallest element in sublist and places it at beginning,
-//(Swaps this value with value in beginning index being considered)
+//(Swaps this next smallest value with value in beginning index being considered)
 //Then narrows the sublist down to one less value, or one value further to the right.
 //I.E. finds smallest element in range (i to array.size()) then (i+1 to array.size()), etc.
+//and places element at i.
 void Sorting::mystery_sort(vector<int>& data)
 {
   //i is index of each element where smallest element in subvector will end up.
