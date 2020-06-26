@@ -25,7 +25,8 @@ shared_ptr<bst_node> BST::InitNode(int data)
   return ptr;
 }
 
-//iterative solution is easiest to implement here.
+
+//iterative solution is easiest to implement here w/ single argument.
 //inserts new_node in correct spot in tree.
 void BST::Insert(shared_ptr<bst_node> new_node)
 {
@@ -58,6 +59,7 @@ void BST::Insert(shared_ptr<bst_node> new_node)
     }
     //if new_node->data>=parent->data, insert as right child.
     if (new_node->data>=parent->data)
+    
     {
       parent->right=new_node;
     }
@@ -71,13 +73,50 @@ void BST::Insert(shared_ptr<bst_node> new_node)
 
 }
 
+void BST::insertRecursive(shared_ptr<bst_node> root, shared_ptr<bst_node>new_node)
+{
+  cout<<"new_node_->data "<<new_node->data<<endl;
+  if(!root_ptr_)
+  {
+    root_ptr_=new_node;
+    cout<<"new root node set to"<<root_ptr_->data<<endl;
+    return;
+  }
+  shared_ptr<bst_node>ptr=root;
+  
+
+  if(new_node->data<ptr->data)
+  {
+    cout<<"recurse left"<<endl;
+    if(!ptr->left)
+    {
+      cout<<"Set to left"<<endl;
+      ptr->left=new_node;
+      return;
+    }
+    insertRecursive(ptr->left, new_node);
+  }
+  else
+  {
+    cout<<"recurse right"<<endl;
+    if(!ptr->right)
+    {
+      cout<<"set to right"<<endl;
+      ptr->right=new_node;
+      return;
+    }
+    insertRecursive(ptr->right, new_node);
+  }
+  return;
+}
 //this calls helper functions
 //InitNode(data)
 //then Insert(shared_ptr<bst_node> new_node)
 void BST::InsertData(int data)
 {
   shared_ptr<bst_node> new_node=InitNode(data);
-  Insert(new_node);
+  //Insert(new_node);
+  insertRecursive(root_ptr_, new_node);
 }
 
 //This finds and returns the parent of node (child==node which contains data)

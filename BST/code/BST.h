@@ -93,7 +93,8 @@ public:
   void SetRoot(shared_ptr<bst_node> root_ptr);
 
   // you can add add more public member variables and member functions here if you need
-
+  //my function
+  void insertRecursive(shared_ptr<bst_node> root, shared_ptr<bst_node>new_node);
 private:
   // this pointer always will point to root of the tree
   shared_ptr<bst_node> root_ptr_;
