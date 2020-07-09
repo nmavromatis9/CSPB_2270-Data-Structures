@@ -30,7 +30,7 @@ unsigned int ModuloBucketFunc(unsigned int hashcode, unsigned int cap){
 
 // constructor, initialize class variables and pointers here if need.
 Hash::Hash(){
-  // your code here
+  // left blank on purpose
 }
 
 //deconstructor,
@@ -43,8 +43,12 @@ Hash::~Hash(){
   // structs. those pointers shoudl all initially be NULL.
 shared_ptr<hash_table> Hash::InitTable(unsigned int cap)
 {
+  //create a new ptr to hash_table, the overarching structure.
   shared_ptr<hash_table> ret(new hash_table);
+  //create a new htable, which is defined as: vector<shared_ptr<hash_node>> htable;
+  //size of vector is created as capacity.
   ret->table = shared_ptr<htable>(new htable(cap));
+  //set all other default parameters.
   ret->capacity=cap;
   ret->size=0;
   ret->occupied=0;
@@ -64,6 +68,8 @@ shared_ptr<hash_node> Hash::InitNode(std::string key, unsigned int hashcode, std
   ret->value=val;
   return ret;
 }
+
+//NOTE: This is basically the same as insert after calculating hash code and bucket.
 
 // SetKVP establishes a mapping between the given key and value pair
   // in the provided hash table. if the key (as identified by its hash
@@ -85,52 +91,52 @@ bool Hash::SetKVP(shared_ptr<hash_table> tbl, std::string key, std::string value
     return false;
   }
 
-
   //first, calculate the hashcode based on the passed key.
   unsigned int code=tbl->hash_func(key);
   //Initialize Node with this hashcode 
   shared_ptr<hash_node> new_node=InitNode(key, code, value);
-  //next, use this hashcode to calc correct bucket (index) to put hashcode in.
+  //next, use this hashcode to calc correct initial bucket (index) to put hashcode in.
   int index= tbl->bucket_func(code, tbl->capacity);
   //Linear probe: Keep probing until empty spot is located.
-  //or update key if it is already found in table.
+  //or update key with new value if key is already found in table.
 
   //if table->at(index)!=NULL means that there is already a hashcode stored at index.
-  //so scroll until NULL (empty) index found.
+  //so scroll until NULL (empty) index found, or kvp in code bucket found to already exist.
   while(tbl->table->at(index)!=NULL) 
   {
-    //if hashcode already exists, break out of loop so that spot can be updated with new key.
+    //if hashcode does not already exist at (non-empty) spot:
     if((tbl->table->at(index)->hashcode != code))
     {
     //increment index. Wrap around size of capacity, so it is never greater than capacity.
       index = (index + 1) % tbl->capacity;
     }
 
-    else
+    //if hashcode already exists, update code with new value by breaking out of loop.
+    else 
     {
       break;
     }
   }
 
 
-  //if we are adding to empty spot, then increase size and occupied member vars.
+  //if we are adding to empty spot, increase size and occupied member vars.
   if (tbl->table->at(index)==NULL) 
   {
     tbl->occupied++;
     tbl->size++;   
   }
 
-  //insert node into correct spot in table, which might update key if key is already found.
+  //insert node into correct NULL or already occupied (matching hashcode) bucket.
   tbl->table->at(index) = new_node;
 
   return true;
 }
 
-//returns occupied/capacity
+//returns size/capacity, which is more standard.
 float Hash::Load(shared_ptr<hash_table> tbl)
 {
   //must cast unsigned ints into floats.
-  float load=(float)tbl->occupied/(float)tbl->capacity;
+  float load=(float)tbl->size/(float)tbl->capacity;
   return load;
 }
 
@@ -139,7 +145,7 @@ float Hash::Load(shared_ptr<hash_table> tbl)
   // there is a mapping but it is deleted).
 std::string Hash::GetVal(shared_ptr<hash_table> tbl, std::string key)
 {
-  //first, calc hashcode from the key to know where to look in table.
+  //first, calc hashcode from the key to know where to first look in table.
   unsigned int code=tbl->hash_func(key);
   //next, calc index (bucket) to look in from hashcode.
   int index= tbl->bucket_func(code, tbl->capacity);
@@ -150,19 +156,19 @@ std::string Hash::GetVal(shared_ptr<hash_table> tbl, std::string key)
   }
   else
   {
-    //Linear probe: Keep probing until empty spot is located.
+    //Linear probe: Keep probing until empty spot is located, or hashcode is found.
 
     //if table->at(index)!=NULL means that there is already a hashcode stored at index.
-    //so scroll until NULL (empty) index found.
+    //so scroll until NULL (empty) index found, or current hashcode is found.
     while(tbl->table->at(index)!=NULL) 
       {
-        //if hashcode is found, break out of loop, so value at that index can be returned.
+        //keep scrolling if current bucket does not contain hashcode to account for linear probing
         if((tbl->table->at(index)->hashcode != code))
         {
         //increment index. Wrap around size of capacity, so it is never greater than capacity.
           index = (index + 1) % tbl->capacity;
         }
-
+      //if hashcode is found, break out of loop, so value at that index can be returned.
         else
         {
           break;
@@ -199,16 +205,16 @@ bool Hash::Contains(shared_ptr<hash_table> tbl, std::string key)
   //linear probe to look in other spots.
 
     //if table->at(index)!=NULL means that there is already a hashcode stored at index.
-    //so scroll until NULL (empty) index found.
+    //so scroll until NULL (empty) index found, or correct hashcode is found.
     while(tbl->table->at(index)!=NULL) 
       {
-        //if hashcode found, break out of loop to check if it is not deleted.
+       //if code in bucket does not match current, scroll forward.
         if((tbl->table->at(index)->hashcode != code))
         {
         //increment index. Wrap around size of capacity, so it is never greater than capacity.
           index = (index + 1) % tbl->capacity;
         }
-
+     //if hashcode found, break out of loop to check if it is not deleted.
         else
         {
           break;
@@ -220,6 +226,7 @@ bool Hash::Contains(shared_ptr<hash_table> tbl, std::string key)
       return true;
     }
   }
+
   return false;
 }
 
@@ -237,6 +244,7 @@ bool Hash::Remove(shared_ptr<hash_table> tbl, std::string key)
   if((tbl->table->at(index)) && tbl->table->at(index)->hashcode==code)
   {
     tbl->size--;
+    //mark as deleted.
     tbl->table->at(index)->deleted=true;
     return true;
   }
@@ -244,16 +252,16 @@ bool Hash::Remove(shared_ptr<hash_table> tbl, std::string key)
   else
   {
      //if table->at(index)!=NULL means that there is a hashcode stored at index.
-    //so scroll until NULL (empty) index found.
+    //so scroll until NULL (empty) index found, or current hashcode is found.
     while(tbl->table->at(index)!=NULL) 
       {
-        //if hashcode found, break out of loop to delete it.
+        //scroll forward if current hashcode not found.
         if((tbl->table->at(index)->hashcode != code))
         {
         //increment index. Wrap around size of capacity, so it is never greater than capacity.
           index = (index + 1) % tbl->capacity;
         }
-
+      //if hashcode found, break out of loop to delete it.
         else
         {
           break;
@@ -271,8 +279,32 @@ bool Hash::Remove(shared_ptr<hash_table> tbl, std::string key)
   return false;
 }
 
-void Hash::Resize(shared_ptr<hash_table> tbl, unsigned int new_capacity){
-  // your code here
+//Resize creates a tbl of greater size, and copies all old values to new bucket locations.
+void Hash::Resize(shared_ptr<hash_table> tbl, unsigned int new_capacity)
+{
+    shared_ptr<hash_table> newTbl=InitTable(new_capacity);
+    //old capacity. Use this and NOT size, which does not account for each bucket.
+    int currentCap=tbl->capacity;
+    int idx=0;
+    //iterate over each bucket, while idx<original tbl size.
+    while(idx<currentCap)//I tried <currentSize, did NOT work.
+    //that did NOT scan each bucket, where some might be filled or empty.
+    {
+      //if this bucket is not NULL, then reinsert into newTbl
+      if(tbl->table->at(idx)!=NULL)
+      {
+        //no need to recalculate new code and idx here, this is calculated in setKVP 
+        //from original key and new cap.
+        //insert into newTbl
+        SetKVP(newTbl, tbl->table->at(idx)->key, tbl->table->at(idx)->value);
+      }
+      //scroll to next bucket.
+      ++idx;
+    }
+  //Now, update original tbl to be replaced with newTbl.
+  tbl->table=newTbl->table;
+  tbl->capacity=new_capacity;
+  return;
 }
 
 // implemented for you - feel free to change this one if you like
