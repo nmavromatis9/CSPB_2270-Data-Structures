@@ -90,7 +90,8 @@ bool Hash::SetKVP(shared_ptr<hash_table> tbl, std::string key, std::string value
   {
     return false;
   }
-
+  //keep track of num probed so that infinite loops don't happen
+  unsigned int nProbed=0;
   //first, calculate the hashcode based on the passed key.
   unsigned int code=tbl->hash_func(key);
   //Initialize Node with this hashcode 
@@ -102,13 +103,15 @@ bool Hash::SetKVP(shared_ptr<hash_table> tbl, std::string key, std::string value
 
   //if table->at(index)!=NULL means that there is already a hashcode stored at index.
   //so scroll until NULL (empty) index found, or kvp in code bucket found to already exist.
-  while(tbl->table->at(index)!=NULL) 
+  while(tbl->table->at(index)!=NULL && nProbed<tbl->capacity) 
   {
     //if hashcode does not already exist at (non-empty) spot:
     if((tbl->table->at(index)->hashcode != code))
     {
     //increment index. Wrap around size of capacity, so it is never greater than capacity.
       index = (index + 1) % tbl->capacity;
+      //increment num probed so infinte loops don't occur.
+      ++nProbed;
     }
 
     //if hashcode already exists, update code with new value by breaking out of loop.
@@ -118,6 +121,11 @@ bool Hash::SetKVP(shared_ptr<hash_table> tbl, std::string key, std::string value
     }
   }
 
+//if nProbed==capacity, that means there is no free spot to insert.
+if(nProbed==tbl->capacity)
+{
+  return false;
+}
 
   //if we are adding to empty spot, increase size and occupied member vars.
   if (tbl->table->at(index)==NULL) 
@@ -149,6 +157,8 @@ std::string Hash::GetVal(shared_ptr<hash_table> tbl, std::string key)
   unsigned int code=tbl->hash_func(key);
   //next, calc index (bucket) to look in from hashcode.
   int index= tbl->bucket_func(code, tbl->capacity);
+  //keep track of num probed so that infinite loops don't happen
+  int unsigned nProbed=0;
   //First, look in this index. If it is NULL, it means value is not present.
   if(tbl->table->at(index)==NULL)
   {
@@ -160,13 +170,14 @@ std::string Hash::GetVal(shared_ptr<hash_table> tbl, std::string key)
 
     //if table->at(index)!=NULL means that there is already a hashcode stored at index.
     //so scroll until NULL (empty) index found, or current hashcode is found.
-    while(tbl->table->at(index)!=NULL) 
+    while(tbl->table->at(index)!=NULL && nProbed<tbl->capacity) 
       {
         //keep scrolling if current bucket does not contain hashcode to account for linear probing
         if((tbl->table->at(index)->hashcode != code))
         {
         //increment index. Wrap around size of capacity, so it is never greater than capacity.
           index = (index + 1) % tbl->capacity;
+          ++nProbed;
         }
       //if hashcode is found, break out of loop, so value at that index can be returned.
         else
@@ -194,6 +205,8 @@ bool Hash::Contains(shared_ptr<hash_table> tbl, std::string key)
   unsigned int code=tbl->hash_func(key);
   //next, calc index (bucket) to look in from hashcode.
   int index= tbl->bucket_func(code, tbl->capacity);
+  //keep track of num probed so that infinite loops don't happen
+  unsigned int nProbed=0;
   //check this spot first. If found and not deleted, return true
   //NOTE: (tbl->table->at(index) must be first to avoid segmentation fault for accessing NULL index.
   if((tbl->table->at(index)) && (tbl->table->at(index)->hashcode==code) && (tbl->table->at(index)->deleted==false))
@@ -206,13 +219,14 @@ bool Hash::Contains(shared_ptr<hash_table> tbl, std::string key)
 
     //if table->at(index)!=NULL means that there is already a hashcode stored at index.
     //so scroll until NULL (empty) index found, or correct hashcode is found.
-    while(tbl->table->at(index)!=NULL) 
+    while(tbl->table->at(index)!=NULL && nProbed<tbl->capacity) 
       {
        //if code in bucket does not match current, scroll forward.
         if((tbl->table->at(index)->hashcode != code))
         {
         //increment index. Wrap around size of capacity, so it is never greater than capacity.
           index = (index + 1) % tbl->capacity;
+          ++nProbed;
         }
      //if hashcode found, break out of loop to check if it is not deleted.
         else
@@ -220,6 +234,12 @@ bool Hash::Contains(shared_ptr<hash_table> tbl, std::string key)
           break;
         }
       }
+
+    //if nProbed==capacity, that means that key was not found. 
+    if(nProbed==tbl->capacity)
+    {
+      return false;
+    }
     //now check that value at index not already deleted.
     if((tbl->table->at(index)) && (tbl->table->at(index)->hashcode==code) && (tbl->table->at(index)->deleted==false))
     {
@@ -240,6 +260,8 @@ bool Hash::Remove(shared_ptr<hash_table> tbl, std::string key)
   unsigned int code=tbl->hash_func(key);
   //next, calc index (bucket) to look in from hashcode.
   int index= tbl->bucket_func(code, tbl->capacity);
+  //keep track of num probed so that infinite loops don't happen
+  unsigned int nProbed=0;
   //if hashcode found at expected index, "delete" it
   if((tbl->table->at(index)) && tbl->table->at(index)->hashcode==code)
   {
@@ -253,13 +275,14 @@ bool Hash::Remove(shared_ptr<hash_table> tbl, std::string key)
   {
      //if table->at(index)!=NULL means that there is a hashcode stored at index.
     //so scroll until NULL (empty) index found, or current hashcode is found.
-    while(tbl->table->at(index)!=NULL) 
+    while(tbl->table->at(index)!=NULL && nProbed<tbl->capacity) 
       {
         //scroll forward if current hashcode not found.
         if((tbl->table->at(index)->hashcode != code))
         {
         //increment index. Wrap around size of capacity, so it is never greater than capacity.
           index = (index + 1) % tbl->capacity;
+          ++nProbed;
         }
       //if hashcode found, break out of loop to delete it.
         else
@@ -267,6 +290,13 @@ bool Hash::Remove(shared_ptr<hash_table> tbl, std::string key)
           break;
         }
       }
+
+    //if nProbed==capacity, that means that key was not found. 
+    if(nProbed==tbl->capacity)
+    {
+      return false;
+    }
+
     //now delete node at this index found by probing.
     if((tbl->table->at(index)) && tbl->table->at(index)->hashcode==code)
     {
