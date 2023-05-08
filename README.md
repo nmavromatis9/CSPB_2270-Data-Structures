@@ -1,2 +1,4 @@
 # CSPB_2270
-Projects for CSPB 2270 Data structures course. Do not copy. 
+Coursework for CSPB 2270 Data structures course.
+
+Final project within, which focused on the creation of a Treap in python. 
